@@ -7,7 +7,7 @@ param(
 	[string]$Version,
 	[string]$Message = "update"
 )
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"   # git writes progress to stderr; failures are checked via $LASTEXITCODE
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 

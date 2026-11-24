@@ -4,7 +4,8 @@
 ## Notes-deDE: Schritt-fuer-Schritt-Levelguide fuer WoW Forever. Guides von RestedXP (CC BY-NC-SA 4.0).
 ## Version: 2.11.1
 ## Category: Quests
-## X-Curse-Project-ID: 1827332## SavedVariables: ForeverRouteDB
+## X-Curse-Project-ID: 1827332
+## SavedVariables: ForeverRouteDB
 ## SavedVariablesPerCharacter: ForeverRouteCharDB
 ## IconTexture: Interface\AddOns\ForeverRoute\Textures\Logo
 ## AddonCompartmentFunc: ForeverRoute_OnAddonCompartmentClick
