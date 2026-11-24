@@ -821,7 +821,7 @@ local function Expand(self, src, out, shown, ctx, depth, from, to, seen)
 	for _, s in ipairs(ReadSteps(src)) do
 		if s.include then
 			if started and depth < 4 then
-				local inc = self:FindGuide(s.include.ref, src.group)
+				local inc = self:FindGuide(s.include.ref, src.group, src.lang)
 				if inc and not seen[inc] then
 					seen[inc] = true
 					Expand(self, inc, out, shown, ctx, depth + 1, s.include.from, s.include.to, seen)

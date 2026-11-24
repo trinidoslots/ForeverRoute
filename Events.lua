@@ -107,6 +107,13 @@ local function OnLogin()
 		-- A saved guide of the other kind (leveling / farming) is not opened.
 		local savedGuide = saved and FR.guidesByTitle[saved]
 		if savedGuide and (savedGuide.farm == true) ~= FR:IsGoldMode() then saved = nil end
+		-- A saved guide in a language that is not the chosen one (a German guide with English chosen)
+		-- is not reopened; its English twin is, if there is one.
+		if saved and savedGuide and not FR:IsGuideAllowed(savedGuide) then
+			local en = savedGuide.pair
+			saved = (en and FR:IsGuideAllowed(en)) and en.title or nil
+			savedGuide = saved and FR.guidesByTitle[saved]
+		end
 		-- An English guide that exists in the player's language (German) opens in that language.
 		local twin = saved and savedGuide and FR:LanguageTwin(savedGuide)
 		if twin then saved = twin.title end

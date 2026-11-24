@@ -925,13 +925,13 @@ function FR:OnGuideFinished()
 	local g = self.current
 	if not g or self.finishing then return end
 	local ref = g.next and g.next:match("^([^;]+)")
-	local nextGuide = ref and self:FindGuide(ref, g.group)
+	local nextGuide = ref and self:FindGuide(ref, g.group, g.lang)
 	-- A guide the dungeon choices left without steps (a dungeon-only guide whose dungeon is
 	-- off) is passed over: on to its own "next".
 	local hops = 0
 	while nextGuide and nextGuide ~= g and hops < 6 and self:IsGuideEmpty(nextGuide) do
 		local r = nextGuide.next and nextGuide.next:match("^([^;]+)")
-		nextGuide = r and self:FindGuide(r, nextGuide.group) or nil
+		nextGuide = r and self:FindGuide(r, nextGuide.group, nextGuide.lang) or nil
 		hops = hops + 1
 	end
 	if nextGuide and self:IsGuideEmpty(nextGuide) then nextGuide = nil end
@@ -1145,7 +1145,7 @@ function FR:ToggleGoal(e, step)
 	end
 	-- ".clicknext": the line takes you to the next guide.
 	if e.nextGuide and self:IsMarked(step, e) then
-		local g = self:FindGuide(e.nextGuide, self.current and self.current.group)
+		local g = self:FindGuide(e.nextGuide, self.current and self.current.group, self.current and self.current.lang)
 		if g and g ~= self.current then self:SetGuide(g.title, 1) return end
 	end
 	-- Show the tick (with its little animation) first, move on afterwards.

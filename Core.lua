@@ -260,6 +260,9 @@ local function Trim(s) return (s:gsub("^%s+", ""):gsub("%s+$", "")) end
 FR.guideCount = {}   -- ["lang|file"] = guides called so far
 FR.guideSlots = {}   -- ["lang|file#n"] = guide
 
+-- Title of a translated guide whose plain title is taken by the English one.
+function FR.LangTitle(title, lang) return title .. " [" .. tostring(lang) .. "]" end
+
 -- Guide files call ForeverRoute.RegisterGuide([[ ...guide text... ]]).
 -- Only the header (lines before the first "step") is read here; steps are
 -- parsed when the guide is opened. Returns the guide, or nil and the reason
@@ -309,7 +312,24 @@ function FR.RegisterGuide(a, b)
 
 	local group = header.group or "Guides"
 	local title = group .. "\\" .. header.name
-	if FR.guidesByTitle[title] then return nil, "already there" end
+	local taken = FR.guidesByTitle[title]
+	if taken then
+		-- The same group and name in the same language is a duplicate. In another language it is the
+		-- translation of the same guide (the German guides keep the English names): English keeps the
+		-- plain title (saved progress, #include and #next point at it), the translation is listed as
+		-- "Group\Name [deDE]" and is found by FR.FindGuide for guides of its own language.
+		if taken.lang == lang then return nil, "already there" end
+		if lang == "enUS" then
+			local moved = FR.LangTitle(title, taken.lang)
+			if FR.guidesByTitle[moved] then return nil, "already there" end
+			FR.guidesByTitle[title] = nil
+			taken.title = moved
+			FR.guidesByTitle[moved] = taken
+		else
+			title = FR.LangTitle(title, lang)
+			if FR.guidesByTitle[title] then return nil, "already there" end
+		end
+	end
 	local g = {
 		title = title,
 		name = header.name,
@@ -611,15 +631,26 @@ function FR:SetAllDungeons(value)
 	if changed and self.DungeonsChanged then self:DungeonsChanged(value) end
 end
 
--- Finds a guide by "Group\Name", or by name within a group.
-function FR:FindGuide(ref, group)
+-- Finds a guide by "Group\Name", or by name within a group. `lang` is the language of the guide
+-- that asks (#include, #next): where the guide exists in that language, that one is meant.
+function FR:FindGuide(ref, group, lang)
 	if not ref then return nil end
 	ref = Trim(ref)
+	if lang and lang ~= "enUS" then
+		local t = self.guidesByTitle[FR.LangTitle(ref, lang)]
+			or (group and self.guidesByTitle[FR.LangTitle(group .. "\\" .. ref, lang)])
+		if t then return t end
+	end
 	if self.guidesByTitle[ref] then return self.guidesByTitle[ref] end
 	if group and self.guidesByTitle[group .. "\\" .. ref] then return self.guidesByTitle[group .. "\\" .. ref] end
+	local first
 	for _, g in ipairs(self.guides) do
-		if g.name == ref then return g end
+		if g.name == ref then
+			if not lang or g.lang == lang then return g end
+			first = first or g
+		end
 	end
+	return first
 end
 
 -- Settings -------------------------------------------------------------------
