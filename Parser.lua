@@ -579,6 +579,10 @@ local function ParseLine(line, step, ctx)
 		e = { text = text, textOnly = true }
 	elseif line:sub(1, 1) == "+" then
 		e = { kind = "manual", text = line:sub(2) }
+		-- "#hidewindow" steps only steer the arrow along a loop; RestedXP never shows
+		-- their lines, and the bare "+1" they end with is a placeholder, not an
+		-- instruction. Hidden, it gets no checkbox and never blocks the step.
+		if step.hidewindow then e.hidden, e.textOnly = true, true end
 		if sig then sig[#sig + 1] = "+" end
 	elseif line:sub(1, 1) == "*" then
 		e = { text = line:sub(2), textOnly = true }
