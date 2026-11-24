@@ -192,13 +192,39 @@ function FR:RefreshJunkIcons()
 	RefreshBaganator()
 end
 
--- Baganator draws the icon itself once a junk plugin is registered: Baganator's own settings choose it.
+-- Baganator draws the icon itself once a junk plugin is registered, and only when the player chose
+-- "ForeverRoute" as the junk plugin in Baganator. Baganator would pick a newly registered plugin by itself
+-- whenever the chosen one is its virtual default "poor_quality" (API/Main.lua AutoSet), which overwrote the
+-- player's setting. So before registering we put ourselves on its ignore list, and once we undo a switch
+-- that an earlier version of this addon made.
 local baganatorDone = false
+local PLUGIN = "ForeverRoute"
+
+local function KeepBaganatorSetting()
+	local config = _G.BAGANATOR_CONFIG
+	local profiles = type(config) == "table" and config.Profiles
+	local profile = type(profiles) == "table" and profiles[_G.BAGANATOR_CURRENT_PROFILE or "DEFAULT"]
+	if type(profile) ~= "table" then return end
+	if profile.junk_plugin == PLUGIN then
+		-- Switched by the automatic choice of an earlier version: back to Baganator's default, once.
+		local db = ForeverRouteDB
+		if db and not db.baganatorJunkRestored then
+			db.baganatorJunkRestored = true
+			profile.junk_plugin = "poor_quality"
+		end
+	end
+	if profile.junk_plugin ~= PLUGIN then
+		if type(profile.junk_plugin_ignored) ~= "table" then profile.junk_plugin_ignored = {} end
+		profile.junk_plugin_ignored[PLUGIN] = true
+	end
+end
+
 local function HookBaganator()
 	if baganatorDone then return end
 	local api = _G.Baganator and _G.Baganator.API
 	if api and api.RegisterJunkPlugin then
 		baganatorDone = true
+		pcall(KeepBaganatorSetting)
 		pcall(api.RegisterJunkPlugin, "ForeverRoute", "ForeverRoute", function(bagID, slotID, itemID)
 			return On() and itemID and FR.IsJunk(itemID, bagID, slotID) or false
 		end)

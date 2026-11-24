@@ -628,6 +628,8 @@ general:Check("skipUnavailable", "Skip quests I cannot accept",
 	"Passes a step whose quest you cannot take (a quest before it is missing, you are too low a level, the quest excludes one you have, or it is not for your race or class). Needs the Questie addon. Going back to the step shows it again.")
 general:Check("autoPassNotice", "Tell me when steps are passed",
 	"When the guide passes steps that were already done in the game (or that need a quest you do not have), a note above the steps says so. Click it to go back to the first of them. Right-click menu > History lists them all.")
+general:Check("versionChannel", "Check for new versions",
+	"Joins a hidden chat channel where ForeverRoute users share their version number (nothing else), so you hear when a newer version is out. Guild and group members are always checked.")
 general:Slider("arriveRadius", "Arrival radius", 3, 40, 1, "%d yd",
 	"How close you have to get to a spot for a travel step to count as reached.")
 general:Choice("hardcoreMode", "Hardcore mode",
@@ -813,7 +815,7 @@ inventory:Header("Inventory Manager")
 inventory:Check("enableInventoryManager", "Enable Inventory Manager",
 	"The switch for everything on this page: it finds the junk in your bags (grey items and the ones you mark yourself). Off: nothing below does anything.")
 inventory:Check("showJunkIcon", "Show junk item indicator",
-	"Puts a gold coin on the junk items in your bags (the game's bags and Baganator).")
+	"Puts a gold coin on the junk items in your bags (the game's bags and Baganator). In Baganator, choose ForeverRoute as the junk plugin (Settings > Icon); your choice there is never changed.")
 inventory:Check("rightClickJunk", "Toggle junk with modified right click",
 	"Right click on an item in your bags while holding the key below marks it as junk, or as useful if it was junk. /fr junk lists what you marked.")
 inventory:Choice("rightClickMod", "Right Click Modifier", "The key to hold for the right click above.",

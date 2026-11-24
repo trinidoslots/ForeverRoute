@@ -16,6 +16,10 @@ A step-by-step leveling guide addon for **WoW Forever**. It shows the next step 
 
 Copy the `ForeverRoute` folder into `Interface\AddOns`, or install it with the CurseForge app. Type `/fr` in game to open the window and `/fr help` for all commands.
 
+## Update notice
+
+An addon cannot look up the newest version on the internet, so ForeverRoute users tell each other: after login the version is shared with your guild, your group and a hidden chat channel (`FRVersion`, switch it off under Settings > General > "Check for new versions"). Nothing but the version number is sent. If someone runs a newer version, you get a chat line on login, and again on every login until you update. `/fr version` shows the state, `/fr update` explains how to update. This works between players who run a version that has this check.
+
 ## Releasing (for the author)
 
 `.\tools\Release.ps1 -Message "what changed"` bumps the version in `ForeverRoute.toc`, commits, tags and pushes. Pushing a `v*` tag runs the GitHub Action that packages the addon and uploads it to CurseForge (needs the `CF_API_KEY` repository secret and `## X-Curse-Project-ID` in the TOC).

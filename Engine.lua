@@ -695,6 +695,11 @@ end
 function FR:SetGuide(title, step, stepKey, noSkip)
 	local g = self.guidesByTitle[title]
 	if not g then return false end
+	-- Never a guide in a language that is not chosen (a German guide with English chosen): its English twin.
+	if g.lang ~= "enUS" and g.lang ~= self:Language() then
+		FR.LangWarn("opened " .. tostring(g.title) .. " (" .. tostring(g.lang) .. ")")
+		if g.pair then g = g.pair end
+	end
 	self:ParseGuide(g)
 	if #g.steps == 0 then return false end
 	self.current = g

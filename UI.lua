@@ -1287,6 +1287,7 @@ function FR:ApplySettings(key)
 	if (key == nil or key == "barSize") and self.ApplyActiveScale then self:ApplyActiveScale() end
 	if (key == "showTips" or key == "enableEmergency") and self.RefreshTips then self:RefreshTips() end
 	if key == "enableTracker" and self.Tracker then self.Tracker.Refresh() end
+	if key == "versionChannel" and self.Version and self.Version.Apply then self.Version.Apply() end
 	if (key == "showJunkIcon" or key == "enableInventoryManager") and self.RefreshJunkIcons then self:RefreshJunkIcons() end
 	if type(key) == "string" and key:find("^partySteps") and self.RefreshPartySteps then self:RefreshPartySteps() end
 	-- Which "#hardcore" / "#softcore" steps show: the guide is read again.

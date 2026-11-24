@@ -55,6 +55,8 @@ local DE = {
 	["%s experience per hour, about %s to level %d"] = "%s Erfahrung pro Stunde, etwa %s bis Stufe %d",
 	["the steps you finished, that were passed on their own or skipped, and why"] = "die Schritte, die ihr erledigt, die automatisch übergangen oder übersprungen wurden, und warum",
 	["Tell me when steps are passed"] = "Bescheid sagen, wenn Schritte übergangen werden",
+	["Check for new versions"] = "Auf neue Versionen prüfen",
+	["Joins a hidden chat channel where ForeverRoute users share their version number (nothing else), so you hear when a newer version is out. Guild and group members are always checked."] = "Tritt einem versteckten Chatkanal bei, in dem ForeverRoute-Nutzer ihre Versionsnummer austauschen (sonst nichts), damit du erfährst, wenn eine neuere Version erschienen ist. Gilden- und Gruppenmitglieder werden immer geprüft.",
 	["Show the pace and time to level"] = "Tempo und Zeit bis zur nächsten Stufe zeigen",
 	["Tick off / untick"] = "Abhaken / Haken entfernen",
 	["This is the last step. Load the next guide?"] = "Das ist der letzte Schritt. Den nächsten Guide laden?",
@@ -485,8 +487,8 @@ local DE = {
 	["The switch for everything on this page: it finds the junk in your bags (grey items and the ones you mark yourself). Off: nothing below does anything."] =
 		"Der Schalter für alles auf dieser Seite: Er findet den Plunder in deinen Taschen (graue Gegenstände und die, die du selbst markierst). Aus: Nichts darunter tut etwas.",
 	["Show junk item indicator"] = "Plunder-Symbol anzeigen",
-	["Puts a gold coin on the junk items in your bags (the game's bags and Baganator)."] =
-		"Setzt eine Goldmünze auf die Plunder-Gegenstände in deinen Taschen (Taschen des Spiels und Baganator).",
+	["Puts a gold coin on the junk items in your bags (the game's bags and Baganator). In Baganator, choose ForeverRoute as the junk plugin (Settings > Icon); your choice there is never changed."] =
+		"Setzt eine Goldmünze auf die Plunder-Gegenstände in deinen Taschen (Taschen des Spiels und Baganator). In Baganator wählst du ForeverRoute als Plunder-Plugin (Einstellungen > Symbol); deine Wahl dort wird nie geändert.",
 	["Toggle junk with modified right click"] = "Plunder mit Tasten + Rechtsklick umschalten",
 	["Right click on an item in your bags while holding the key below marks it as junk, or as useful if it was junk. /fr junk lists what you marked."] =
 		"Ein Rechtsklick auf einen Gegenstand in deinen Taschen bei gehaltener Taste unten markiert ihn als Plunder, oder als nützlich, wenn er Plunder war. /fr junk listet auf, was du markiert hast.",

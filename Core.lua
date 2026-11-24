@@ -263,6 +263,20 @@ FR.guideSlots = {}   -- ["lang|file#n"] = guide
 -- Title of a translated guide whose plain title is taken by the English one.
 function FR.LangTitle(title, lang) return title .. " [" .. tostring(lang) .. "]" end
 
+-- A guide in a language that is not the chosen one was about to be used (it is replaced by its English
+-- twin). Said once per kind in the chat, with the call stack, so the cause can be found.
+local langWarned = {}
+function FR.LangWarn(what)
+	if langWarned[what] then return end
+	langWarned[what] = true
+	local stack = ""
+	if debugstack then
+		local ok, s = pcall(debugstack, 3, 5, 0)
+		if ok and type(s) == "string" then stack = s:gsub("Interface/AddOns/ForeverRoute/", ""):gsub("\n", " < ") end
+	end
+	DEFAULT_CHAT_FRAME:AddMessage("|cffff8800ForeverRoute [language]:|r " .. what .. " |cff888888" .. stack .. "|r")
+end
+
 -- Guide files call ForeverRoute.RegisterGuide([[ ...guide text... ]]).
 -- Only the header (lines before the first "step") is read here; steps are
 -- parsed when the guide is opened. Returns the guide, or nil and the reason
@@ -636,18 +650,25 @@ end
 function FR:FindGuide(ref, group, lang)
 	if not ref then return nil end
 	ref = Trim(ref)
+	-- Never a guide in a language that is not the chosen one (or English): a German guide with English
+	-- chosen gives way to its English twin.
+	local chosen = self:Language()
+	local function Usable(g)
+		if g and g.lang ~= "enUS" and g.lang ~= chosen then g = g.pair end
+		if g and (g.lang == "enUS" or g.lang == chosen) then return g end
+	end
 	if lang and lang ~= "enUS" then
 		local t = self.guidesByTitle[FR.LangTitle(ref, lang)]
 			or (group and self.guidesByTitle[FR.LangTitle(group .. "\\" .. ref, lang)])
-		if t then return t end
+		if Usable(t) then return Usable(t) end
 	end
-	if self.guidesByTitle[ref] then return self.guidesByTitle[ref] end
-	if group and self.guidesByTitle[group .. "\\" .. ref] then return self.guidesByTitle[group .. "\\" .. ref] end
+	local t = self.guidesByTitle[ref] or (group and self.guidesByTitle[group .. "\\" .. ref])
+	if Usable(t) then return Usable(t) end
 	local first
 	for _, g in ipairs(self.guides) do
-		if g.name == ref then
-			if not lang or g.lang == lang then return g end
-			first = first or g
+		if g.name == ref and Usable(g) then
+			if not lang or g.lang == lang then return Usable(g) end
+			first = first or Usable(g)
 		end
 	end
 	return first
@@ -669,6 +690,7 @@ FR.defaults = {
 	enableTracker = true,         -- record the experience and time of each level (Tracker.lua)
 	showLevelETA = true,          -- the guide window's footer shows the pace and the time to the next level
 	autoPassNotice = true,        -- say when the guide passes steps that were already done (History.lua)
+	versionChannel = true,        -- join the hidden channel FRVersion to hear about newer versions (VersionCheck.lua)
 	skipUnavailable = true,       -- pass "accept" steps of quests Questie says cannot be taken (Engine.lua, needs the Questie addon)
 	autoFly = false,              -- a "Fly to ..." step flies there as soon as the flight master's map opens (Events.lua; Shift = off)
 	autoBank = true,              -- ".bankdeposit / .bankwithdraw" steps move their items when the bank is open (Bank.lua; Shift = off)
