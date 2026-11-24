@@ -1,0 +1,27 @@
+Guide content in this folder (enUS\, deDE\, esES\, frFR\, ptBR\ and zhCN\) is taken from RestedXP Guides
+v4.11.40 by the RestedXP team (https://www.restedxp.com), licensed under
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+(CC BY-NC-SA 4.0): https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+Changes made for ForeverRoute:
+- Guides register through ForeverRoute.RegisterGuide instead of
+  RXPGuides.RegisterGuide.
+- The locale check at the top of the files uses ForeverRoute's flag, and a line
+  ForeverRoute.guideFile = "..." after it names the file, so a translated guide can
+  be matched with its English twin.
+- enUS\forever\RestedXP-Skyborne.lua holds RestedXP's two Zephras Isle guides followed by the
+  guides of RestedXP's Forever\Forever.lua (levels 13-60), registered the same way.
+- The step text itself is unchanged. In the program (not in these files) a
+  translated guide that is behind its English version is completed from the English
+  guide: steps the translation does not have yet are shown in English.
+- The translations (deDE, esES, frFR, ptBR, zhCN) are the ones RestedXP ships in
+  lang\Guides-<locale>.
+
+DungeonStats.lua, EmergencyData.lua and NpcNames.lua next to the program files hold RestedXP's
+dungeon rating table and its list of emergency items and spells (DB\forever\db.lua:
+addon.dungeonStats, addon.emergencyItems, addon.emergencySpells) and its table of creature
+names per game language (locale\NPCnames.lua), copied
+unchanged, under the same license. tools\Update-RxpData.js writes them.
+
+ForeverRoute is a free, non-commercial addon. This guide content may only be
+shared under the same license.

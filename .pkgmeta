@@ -1,0 +1,9 @@
+package-as: ForeverRoute
+
+ignore:
+  - tools
+  - .github
+  - .gitignore
+  - .gitattributes
+  - "*.zip"
+  - "*.bak"

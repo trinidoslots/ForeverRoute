@@ -1,0 +1,79 @@
+ForeverRoute.loadingLocale = "ptBR"
+ForeverRoute.guideFile = "forever/dungeon/Alliance-1-14_DwarfGnome"
+local faction = UnitFactionGroup("player")
+if faction == "Horde" then return end
+
+ForeverRoute.RegisterGuide([[
+#forever
+#version 1
+<< Alliance
+#group Guia de Masmorras do RestedXP Forever (A)
+#subgroup Guia da Masmorra 1-20
+--#groupid RXP-SRGCE-A1
+#name 1-5 Coldridge Valley
+#next 5-11 Dun Morogh
+#defaultfor Dwarf/Gnome
+
+step
+#include Guia RestedXP Forever (A)\1-5 Coldridge Valley
+]])
+
+ForeverRoute.RegisterGuide([[
+#forever
+#version 1
+<< Alliance
+#group Guia de Masmorras do RestedXP Forever (A)
+#subgroup Guia da Masmorra 1-20
+--#groupid RXP-SRGCE-A1
+#name 5-11 Dun Morogh
+#next 11-12 Elwynn (Anão/Gnomo);11-12 Missão do Emissário do Caos;12-14 Loch Modan (Anão/Gnomo);11-13 Loch Modan (Caçador)
+#defaultfor Dwarf/Gnome
+
+step
+#include Guia RestedXP Forever (A)\5-11 Dun Morogh
+]])
+
+ForeverRoute.RegisterGuide([[
+#forever
+<< Alliance !Hunter
+#group Guia de Masmorras do RestedXP Forever (A)
+#subgroup Guia da Masmorra 1-20
+--#groupid RXP-SRGCE-A1
+#name 11-12 Elwynn (Anão/Gnomo)
+#version 1
+#defaultfor Gnome/Dwarf
+#next 12-14 Loch Modan (Anão/Gnomo)
+
+step
+#include Guia RestedXP Forever (A)\11-12 Elwynn (Anão/Gnomo)
+]])
+
+ForeverRoute.RegisterGuide([[
+#forever
+#version 1
+<< Alliance !Hunter
+#group Guia de Masmorras do RestedXP Forever (A)
+#subgroup Guia da Masmorra 1-20
+--#groupid RXP-SRGCE-A1
+#name 12-14 Loch Modan (Anão/Gnomo)
+#next 13-15 Cerro Oeste
+#defaultfor Gnome/Dwarf
+
+step
+#include Guia RestedXP Forever (A)\12-14 Loch Modan (Anão/Gnomo)
+]])
+
+ForeverRoute.RegisterGuide([[
+#forever
+#version 1
+<< Alliance Hunter
+#group Guia de Masmorras do RestedXP Forever (A)
+#subgroup Guia da Masmorra 1-20
+--#groupid RXP-SRGCE-A1
+#name 11-13 Loch Modan (Caçador)
+#next 13-15 Cerro Oeste
+#defaultfor Dwarf
+
+step
+#include Guia RestedXP Forever (A)\11-13 Loch Modan (Caçador)@NormalRouteStart-NormalRouteEnd
+]])

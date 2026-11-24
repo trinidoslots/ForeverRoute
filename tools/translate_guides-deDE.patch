@@ -1,0 +1,115 @@
+--- a/translate_guides.py
++++ b/translate_guides.py
+@@ -665,8 +665,13 @@
+             value = raw.get(section, {})
+             self.sections[section] = value if isinstance(value, dict) else {}
+ 
+-        zones_raw = load_json(ZONES_FILE, {})
+-        spells_raw = load_json(SPELLS_FILE, {})
++        # (patched) zones_all.json / spells_es.json are Spanish: only Spanish targets may use them.
++        spanish = locale in ("esES", "esMX")
++        own_zones = DATABASE_DIR / f"zones_{locale}.json"
++        zones_raw = load_json(ZONES_FILE if spanish or not own_zones.exists() else own_zones, {})
++        if not spanish and not own_zones.exists():
++            zones_raw = {}
++        spells_raw = load_json(SPELLS_FILE, {}) if spanish else {}
+         if "expansions" in zones_raw:
+             all_zones = zones_raw["expansions"].get("all", {}).copy()
+             exp_zones = zones_raw["expansions"].get(wow_version, {})
+@@ -842,7 +847,7 @@
+         if hasattr(self, "_zone_patterns"):
+             return self._zone_patterns
+         merged = dict(self.sections.get("zones", {}))
+-        for en, es in ZONE_TRANSLATIONS.items():
++        for en, es in (ZONE_TRANSLATIONS.items() if self.locale in ("esES", "esMX") else ()):
+             if en not in merged:
+                 merged[en] = es
+         sorted_zones = sorted(merged.items(), key=lambda p: len(p[0]), reverse=True)
+@@ -1009,6 +1014,8 @@
+ 
+     def fallback(self, text: str) -> str:
+         result = text
++        if self.locale not in ("esES", "esMX"):   # (patched) the rules are Spanish
++            return result
+         for old, new in FALLBACK_RULES:
+             old_clean = old.strip()
+             new_clean = new.strip()
+@@ -1038,12 +1045,15 @@
+ 
+         # La llamada de red se hace FUERA del lock para no frenar a los hilos.
+         if self.google is not None:
+-            try:
+-                translated = self.google.translate(text)
+-                if translated:
+-                    provider = "google"
+-            except Exception:
+-                translated = None
++            for attempt in range(4):   # (patched) retry: the free endpoint answers 429 under load
++                try:
++                    translated = self.google.translate(text)
++                    if translated:
++                        provider = "google"
++                        break
++                except Exception:
++                    translated = None
++                time.sleep(1.5 * (attempt + 1))
+ 
+         if not translated and self.mymemory is not None:
+             try:
+@@ -1503,6 +1513,10 @@
+         """
+         # ── .goto: no tocar zona/coordenadas, pero traducir instrucción después de >> ──
+         stripped = line.lstrip()
++        # (patched) names that identify guides and the targets of the macros stay in English
++        # (ForeverRoute maps them to the game's names itself).
++        if stripped.startswith(("#name ", "#next ", "#include ")) or stripped.lower().startswith((".mob ", ".target ", ".unitscan ")):
++            return line
+         if stripped.lower().startswith(".goto "):
+             if ">>" in line:
+                 # .goto Undercity,65.53,43.62,15 >>Take the lift down
+@@ -1642,7 +1656,10 @@
+ 
+     # ── Configurar idioma desde línea de comandos ──
+     locale = DEFAULT_LOCALE
+-    if len(sys.argv) > 1 and sys.argv[1] in SUPPORTED_LOCALES:
++    if len(sys.argv) > 1:
++        if sys.argv[1] not in SUPPORTED_LOCALES:
++            print("Unknown locale: " + sys.argv[1])
++            return 1
+         locale = sys.argv[1]
+ 
+     TARGET_LOCALE = locale
+@@ -1680,7 +1697,7 @@
+             print(f"  ⚠ Duplicado ignorado (mismo nombre de salida): {rel}")
+             continue
+         seen_rels.add(rel)
+-        text_lines = source.read_text(encoding="utf-8", errors="ignore").splitlines()
++        text_lines = source.read_text(encoding="utf-8").splitlines()
+         files_meta.append({
+             "name": rel,
+             "rel": rel,
+@@ -1717,11 +1734,20 @@
+         buffer: list[str] = []
+         written = keep
+ 
++        # (patched) blocks of lines are translated by 8 threads (the translator keeps no per-line state)
++        import concurrent.futures as _cf
++        _pool = _cf.ThreadPoolExecutor(max_workers=8)
++        _block = 200
++        _done_to = keep
+         for line_no in range(keep + 1, len(lines) + 1):
+-            line = lines[line_no - 1]
+-            buffer.append(
+-                translator.translate_line(line, file=str(relative), line_no=line_no)
+-            )
++            if line_no > _done_to:
++                _hi = min(len(lines), line_no + _block - 1)
++                _results = list(_pool.map(
++                    lambda n: translator.translate_line(lines[n - 1], file=str(relative), line_no=n),
++                    range(line_no, _hi + 1)))
++                _done_to = _hi
++                _base = line_no
++            buffer.append(_results[line_no - _base])
+             written += 1
+             if len(buffer) >= CHECKPOINT_FLUSH_EVERY or line_no == len(lines):
+                 handle.write("\n".join(buffer) + "\n")

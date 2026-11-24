@@ -1,0 +1,19 @@
+# Builds the addon zip and uploads it to CurseForge whenever a version tag (v2.11.1, ...) is pushed.
+# tools\Release.ps1 creates and pushes that tag.
+name: Package and release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      CF_API_KEY: ${{ secrets.CF_API_KEY }}   # CurseForge API token (repo secret)
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: BigWigsMods/packager@v2

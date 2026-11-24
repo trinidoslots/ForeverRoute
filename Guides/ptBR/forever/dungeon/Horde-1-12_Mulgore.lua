@@ -1,0 +1,38 @@
+ForeverRoute.loadingLocale = "ptBR"
+ForeverRoute.guideFile = "forever/dungeon/Horde-1-12_Mulgore"
+local faction = UnitFactionGroup("player")
+if faction == "Alliance" then return end
+
+ForeverRoute.RegisterGuide([[
+#forever
+<< Horde
+#name 1-6 Mulgore
+#version 11
+#group Guia de Masmorras do RestedXP Forever (H)
+#subgroup Guia de Masmorra 1-22
+--#groupid RXP-SRGCE-H1
+#defaultfor Tauren
+#next 6-12 Mulgore;6-13 Mulgore
+
+step
+.enabledungeon RFC
+#include Guia de Progressão Rápida do RestedXP Forever (H)\1-6 Mulgore
+]])
+
+
+ForeverRoute.RegisterGuide([[
+#forever
+<< Horde
+#name 6-12 Mulgore
+#version 11
+#group Guia de Masmorras do RestedXP Forever (H)
+#subgroup Guia de Masmorra 1-22
+--#groupid RXP-SRGCE-H1
+#defaultfor Tauren
+#next 12-16 Terras Devastadas
+
+
+step
+.enabledungeon RFC
+#include Guia de Progressão Rápida do RestedXP Forever (H)\6-12 Mulgore
+]])
