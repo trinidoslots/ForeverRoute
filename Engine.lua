@@ -54,6 +54,11 @@ function FR:SetUnticked(step, e)
 	if sm then sm[e.idx] = false end
 end
 
+function FR:ClearUntick(step, e)
+	local sm = MarkTable(step, false)
+	if sm and sm[e.idx] == false then sm[e.idx] = nil end
+end
+
 -- Skipped by hand ("Skip step"): the step counts as finished for the guide,
 -- and shows as skipped in the list. Stored next to the element marks.
 function FR:IsManuallySkipped(step)
@@ -239,9 +244,20 @@ function FR:ElementState(step, e)
 		return self:IsMarked(step, e), true
 	end
 	if e.textOnly then return false, false end
-	if self:IsUnticked(step, e) then return false, true end
+	if self:IsUnticked(step, e) then
+		-- Unticked by hand only holds while the game says the line is done. Once the game says it is
+		-- open, the untick is outdated and goes away, so the line ticks itself when it is done for real.
+		if self:GameState(step, e) then return false, true end
+		self:ClearUntick(step, e)
+	end
 	if self:IsMarked(step, e) then return true, true end
+	return self:GameState(step, e)
+end
 
+-- What the game says about a line (quest log, bags, level ...), without ticks or unticks made by hand.
+-- done, completable
+function FR:GameState(step, e)
+	local k = e.kind
 	-- ".bankdeposit / .bankwithdraw <items>": done when the items are out of the bags / out of the bank
 	-- (Bank.lua). Without a known state (the bank was never opened) it stays open for a manual tick.
 	if k == "bank" and e.items and #e.items > 0 and FR.BankLineDone then
@@ -1144,7 +1160,13 @@ function FR:ToggleGoal(e, step)
 	self.pinnedStep = nil
 	self.replaying = false   -- a click ends a running replay
 	if self:ElementState(step, e) then
-		self:SetUnticked(step, e)
+		-- Only the game saying "done" needs an untick that holds. A line that is done just because it was
+		-- ticked by hand simply loses its tick (an untick there would keep it open for good).
+		if e.manualCheck or e.kind == "goto" or not self:GameState(step, e) then
+			self:SetMarked(step, e, false)
+		else
+			self:SetUnticked(step, e)
+		end
 	else
 		self:SetMarked(step, e, true)
 	end

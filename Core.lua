@@ -803,11 +803,28 @@ function FR:InitDB()
 	-- now (see FR.StepKey); the old ticks cannot be moved over reliably (the guides
 	-- were updated in between), so they start again. What the game knows - quests,
 	-- items, level - ticks itself again.
-	if ForeverRouteCharDB.marksV ~= 2 then
+	if (ForeverRouteCharDB.marksV or 0) < 2 then
 		ForeverRouteCharDB.marks = {}
 		ForeverRouteCharDB.marksV = 2
 	end
 	ForeverRouteCharDB.marks = ForeverRouteCharDB.marks or {}
+	-- Version 3: a line unticked by hand (mark = false) used to stay open for good, even when the game
+	-- later finished it, so such lines never ticked themselves. Those unticks are dropped once; the
+	-- ticks made by hand stay. (An untick now only holds while the game says the line is done.)
+	if ForeverRouteCharDB.marksV < 3 then
+		for _, guide in pairs(ForeverRouteCharDB.marks) do
+			if type(guide) == "table" then
+				for _, step in pairs(guide) do
+					if type(step) == "table" then
+						for idx, v in pairs(step) do
+							if v == false then step[idx] = nil end
+						end
+					end
+				end
+			end
+		end
+		ForeverRouteCharDB.marksV = 3
+	end
 	self.db = db
 end
 
