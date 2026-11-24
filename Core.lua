@@ -398,7 +398,9 @@ function FR.PairGuides()
 			if en then
 				local a, b = tostring(g.name):match("^(%d+%-%d+)"), tostring(en.name):match("^(%d+%-%d+)")
 				-- Same level range, or a translated name without any level range ("Lauft zum Dorf ...").
-				if (a and a == b) or (not a and b) then
+				-- Same level range, a translated name without any level range ("Lauft zum Dorf ..."), or guides
+				-- without a level range whose names are the same ("01. Hall of Thanes", "Hyjal").
+				if (a and a == b) or (not a and (b or g.name == en.name)) then
 					g.pair = en
 					paired = paired + 1
 					if FR.groupCanon[g.group] == nil then FR.groupCanon[g.group] = en.group end

@@ -1440,7 +1440,8 @@ function FR:BuildGuideMenu()
 	local lang = self:Language()
 	local list = {}
 	for _, g in ipairs(self.guides) do
-		if self:IsGuideAllowed(g) then list[#list + 1] = g end
+		-- An English guide that exists in the chosen language is not listed twice.
+		if self:IsGuideAllowed(g) and not (g.lang ~= lang and self:LanguageTwin(g)) then list[#list + 1] = g end
 	end
 	table.sort(list, GuideBefore)
 	for pass = 1, 2 do
