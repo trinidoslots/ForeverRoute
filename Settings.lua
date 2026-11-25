@@ -626,6 +626,8 @@ general:Check("autoFly", "Fly automatically",
 	"A \"Fly to ...\" step takes the flight as soon as you open the map of a flight master. Hold Shift to choose by hand.")
 general:Check("skipUnavailable", "Skip quests I cannot accept",
 	"Passes a step whose quest you cannot take (a quest before it is missing, you are too low a level, the quest excludes one you have, or it is not for your race or class). Needs the Questie addon. Going back to the step shows it again.")
+general:Check("missingQuestPrompt", "Offer a route for missing quests",
+	"When a step needs a quest that is not in your quest log (or cannot be accepted because a quest before it is missing), a card offers to create a route that gets it, or to skip it, and lists the later quests you may miss. Uses the Questie addon when it is installed.")
 general:Check("autoPassNotice", "Tell me when steps are passed",
 	"When the guide passes steps that were already done in the game (or that need a quest you do not have), a note above the steps says so. Click it to go back to the first of them. Right-click menu > History lists them all.")
 general:Check("versionChannel", "Check for new versions",

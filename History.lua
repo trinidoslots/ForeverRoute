@@ -79,6 +79,7 @@ function FR:RecordStep(step, how, why, minor)
 	local g = self.current
 	local list = List()
 	if not (g and list and step) or step.empty or step.blank or FR.IsSideStep(step) then return end
+	if g.detour then return end   -- a detour (MissingQuest.lua) is not part of the history
 	local key = FR.StepKey(step)
 	-- The same event reported again (Refresh runs often): refresh the last entries instead of adding.
 	for i = #list, math.max(1, #list - 4), -1 do

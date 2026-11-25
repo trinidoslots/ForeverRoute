@@ -227,6 +227,7 @@ local HELP = {
 	{ "/fr errors [clear]", "show the errors ForeverRoute caused (text to copy), or clear them" },
 	{ "/fr report", "report a problem with the current step (text to copy)" },
 	{ "/fr import", "add a guide from its text" },
+	{ "/fr missed [clear]", "list the quests you skipped from the missing-quest card, or forget them" },
 	{ "/fr version", "your version and the newest one other ForeverRoute users run" },
 	{ "/fr update", "how to get a newer version onto this PC" },
 }
@@ -309,6 +310,8 @@ SlashCmdList.FOREVERROUTE = function(msg)
 		FR:OpenReport()
 	elseif cmd == "import" then
 		FR:OpenImport()
+	elseif cmd == "missed" or cmd == "skipped" then
+		FR:PrintMissed((msg or ""):lower():match("^%S+%s+(%S+)") == "clear")
 	elseif cmd == "version" or cmd == "ver" then
 		FR.Version.Print()
 	elseif cmd == "update" then

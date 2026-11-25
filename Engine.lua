@@ -258,6 +258,10 @@ end
 -- done, completable
 function FR:GameState(step, e)
 	local k = e.kind
+	-- A quest skipped from the "missing quest" card (MissingQuest.lua): its lines count as done.
+	if e.qid and (k == "accept" or k == "turnin" or k == "complete") and FR.IsGivenUp and FR.IsGivenUp(e.qid) then
+		return true, true
+	end
 	-- ".bankdeposit / .bankwithdraw <items>": done when the items are out of the bags / out of the bank
 	-- (Bank.lua). Without a known state (the bank was never opened) it stays open for a manual tick.
 	if k == "bank" and e.items and #e.items > 0 and FR.BankLineDone then
@@ -465,7 +469,9 @@ function FR:IsStepSkipped(step, depth)
 		if e.cond and CondFails(e) then return true end
 	end
 	if (step == candidate or (self.current and self.current.steps[self.stepIndex] == step))
-		and self:IsStepUnavailable(step) then
+		and self:IsStepUnavailable(step)
+		-- A quest whose pre-quest is missing gets the "missing quest" card instead of a silent skip.
+		and not (FR.MissingQuestHolds and FR.MissingQuestHolds(step)) then
 		return true
 	end
 	return false
@@ -701,6 +707,12 @@ end
 
 function FR:SaveState()
 	ForeverRouteCharDB = ForeverRouteCharDB or {}
+	-- A detour (MissingQuest.lua) is never saved: after a reload the guide it started from opens.
+	local d = self.current and self.current.detour
+	if d then
+		ForeverRouteCharDB.guide, ForeverRouteCharDB.step, ForeverRouteCharDB.stepKey = d.originTitle, d.originStep, d.originKey
+		return
+	end
 	ForeverRouteCharDB.guide = self.current and self.current.title
 	ForeverRouteCharDB.step = self.stepIndex
 	ForeverRouteCharDB.stepKey = self:CurrentStepKey()
@@ -711,6 +723,8 @@ end
 function FR:SetGuide(title, step, stepKey, noSkip)
 	local g = self.guidesByTitle[title]
 	if not g then return false end
+	-- Opening another guide ends a detour.
+	if self.current and self.current.detour and self.current ~= g then self:DropDetour(self.current) end
 	-- Never a guide in a language that is not chosen (a German guide with English chosen): its English twin.
 	if g.lang ~= "enUS" and g.lang ~= self:Language() then
 		FR.LangWarn("opened " .. tostring(g.title) .. " (" .. tostring(g.lang) .. ")")
@@ -945,6 +959,8 @@ end
 function FR:OnGuideFinished()
 	local g = self.current
 	if not g or self.finishing then return end
+	-- The last step of a detour: back to the step it started from.
+	if g.detour then self:EndDetour() return end
 	local ref = g.next and g.next:match("^([^;]+)")
 	local nextGuide = ref and self:FindGuide(ref, g.group, g.lang)
 	-- A guide the dungeon choices left without steps (a dungeon-only guide whose dungeon is
@@ -1040,6 +1056,7 @@ end
 -- Called after any event that can change progress.
 function FR:Refresh()
 	if self.current then LatchAreas(self) end
+	if self.UpdateMissingQuest then self:UpdateMissingQuest() end
 	if self.current and self:Get("autoAdvance") then
 		local step = self:GetStep()
 		local finished = step and self:IsStepFinished(step)
@@ -1185,10 +1202,21 @@ end
 
 -- Guide choice ---------------------------------------------------------------------------
 
--- Level range from a guide name like "6-12 Tirisfal Glades".
+-- Level range from a guide name like "6-12 Tirisfal Glades". Levels are one or two digits: a typo in
+-- the data such as "37-380_38-38 Swamp of Sorrows" (a range of 37-380) is not taken as a range; the
+-- #displayname ("37-38 Swamp of Sorrows") is used instead when the name has no valid one.
+local function RangeOf(text)
+	-- At the start or after a space only: not the "38-38" tail of "37-380_38-38".
+	text = " " .. tostring(text or "")
+	local lo, hi = text:match("%s(%d%d?)%-(%d%d?)%f[%D]")
+	lo, hi = tonumber(lo), tonumber(hi)
+	if lo and hi and hi >= lo then return lo, hi end
+end
+
 local function LevelRange(g)
-	local lo, hi = tostring(g.name):match("(%d+)%-(%d+)")
-	return tonumber(lo), tonumber(hi)
+	local lo, hi = RangeOf(g.name)
+	if not lo then lo, hi = RangeOf(g.short or (g.header and g.header.displayname)) end
+	return lo, hi
 end
 FR.GuideLevelRange = LevelRange
 

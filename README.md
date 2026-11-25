@@ -5,6 +5,7 @@ A step-by-step leveling guide addon for **WoW Forever**. It shows the next step 
 ## Features
 
 - Guide window with the current step, quest objectives and progress
+- Missing quests: when a step needs a quest that is not in your log (or whose pre-quest is missing), a card offers a route to get it (a detour that returns to the guide) or to skip it, and lists the later quests you may miss. Uses Questie's database when installed; `/fr missed` lists skipped quests
 - Waypoint arrow, world map pins and minimap pins
 - Name plate icons for the enemies and NPCs the current step needs
 - Optional quest automation (accept, turn in, gossip) and an inventory/junk manager

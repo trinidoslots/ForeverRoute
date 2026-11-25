@@ -746,6 +746,7 @@ local function GetBox()
 	end
 	b.notice = nil
 	b:EnableMouse(false)
+	if b.promptBtns then for _, btn in ipairs(b.promptBtns) do btn:Hide() end end
 	if not b:IsShown() then
 		-- Newly shown cards grow in and fade in.
 		b.curH = 0
@@ -892,6 +893,45 @@ local function NoticeBox(notice)
 	local box = MessageBox(FR:PassNoticeText(notice))
 	box.notice = notice
 	box:EnableMouse(true)
+	return box
+end
+
+-- The "missing quest" card (MissingQuest.lua): the text, and three buttons under it.
+local PROMPT_BTN_H = 22
+local function PromptBox(p)
+	local W = FR:Get("width") or 280
+	local box = GetBox()
+	box.step, box.message = nil, nil
+	local h = FillMessage(box, FR:PromptText(p), W)
+	if not box.promptBtns then
+		box.promptBtns = {}
+		for i = 1, 3 do
+			local b = CreateFrame("Button", nil, box, "UIPanelButtonTemplate")
+			b:SetHeight(PROMPT_BTN_H)
+			box.promptBtns[i] = b
+		end
+		box.promptBtns[1]:SetScript("OnClick", function() FR:MissingQuestCreate() end)
+		box.promptBtns[2]:SetScript("OnClick", function() FR:MissingQuestSkip() end)
+		box.promptBtns[3]:SetScript("OnClick", function() FR:MissingQuestDismiss() end)
+	end
+	local create, skip, later = box.promptBtns[1], box.promptBtns[2], box.promptBtns[3]
+	create:SetText(FR.L["Create route"])
+	skip:SetText(FR.L["Skip quest"])
+	later:SetText(FR.L["Not now"])
+	local gap = 4
+	local inner = W - PAD * 2
+	local side = math.floor((inner - gap * 2) * 0.27)
+	local mid = (inner - gap * 2) - side
+	local wCreate = math.floor(mid * 0.5)
+	create:SetSize(wCreate, PROMPT_BTN_H)
+	skip:SetSize(mid - wCreate, PROMPT_BTN_H)
+	later:SetSize(side, PROMPT_BTN_H)
+	create:ClearAllPoints(); create:SetPoint("BOTTOMLEFT", box, "BOTTOMLEFT", PAD, PAD)
+	skip:ClearAllPoints(); skip:SetPoint("LEFT", create, "RIGHT", gap, 0)
+	later:ClearAllPoints(); later:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -PAD, PAD)
+	if p.routeText then create:Enable() else create:Disable() end
+	for _, b in ipairs(box.promptBtns) do b:Show() end
+	SetBoxHeight(box, h + PROMPT_BTN_H + 4)
 	return box
 end
 
@@ -1205,6 +1245,10 @@ function FR:UpdateUI()
 		-- Steps the guide passed on its own (already done in the game): said above the steps, with a way back.
 		local notice = self.ActivePassNotice and self:ActivePassNotice()
 		if notice then shown[#shown + 1] = NoticeBox(notice) end
+
+		-- A step stuck on a quest you do not have: create a route to it, or skip it (MissingQuest.lua).
+		local prompt = self.prompt
+		if prompt and prompt.step == current then shown[#shown + 1] = PromptBox(prompt) end
 
 		local wpElement, wpStep = self:ChooseWaypoint(active)
 		if wpElement then
@@ -1602,6 +1646,9 @@ local function ShowOptionsMenuRaw(self, owner, stepIndex)
 	end
 	items[#items + 1] = { text = L["Choose another guide"], children = self:BuildGuideMenu() }
 	if self.BuildHistoryMenu then items[#items + 1] = { text = L["History"], children = self:BuildHistoryMenu() } end
+	if g and g.detour then
+		items[#items + 1] = { text = L["Leave detour"], onClick = function() FR:EndDetour() end }
+	end
 	if g then
 		-- Only for a guide that has tips (RestedXP: "Display Tips").
 		if g.tips and #g.tips > 0 then

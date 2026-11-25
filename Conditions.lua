@@ -180,6 +180,8 @@ local function QuestieDB()
 	return questieDB
 end
 
+FR.QuestieDB = QuestieDB   -- MissingQuest.lua reads quest data through it
+
 local availCache = {}   -- [questID] = { t = GetTime(), ok = bool, why = "prereq" | "level", level = n }
 local function ResetAvailability() for k in pairs(availCache) do availCache[k] = nil end end
 FR.ResetQuestAvailability = ResetAvailability
