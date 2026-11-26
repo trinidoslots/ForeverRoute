@@ -182,11 +182,34 @@ end
 
 FR.QuestieDB = QuestieDB   -- MissingQuest.lua reads quest data through it
 
-local availCache = {}   -- [questID] = { t = GetTime(), ok = bool, why = "prereq" | "level", level = n }
+local availCache = {}   -- [questID] = { t = GetTime(), ok = bool, why = "prereq" | "level" | "other", level = n }
 local function ResetAvailability() for k in pairs(availCache) do availCache[k] = nil end end
 FR.ResetQuestAvailability = ResetAvailability
 
--- true when the quest can be accepted (or nothing is known); false, "prereq" | "level", level
+-- Why Questie says no. IsDoable alone only returns false: it is also false for quests Questie hides
+-- (its blacklist, e.g. "removed with Cata" quests that Forever still has), so the reason is read from
+-- IsDoableVerbose. Only a missing pre-quest counts as "prereq"; Questie's hidden list is ignored.
+local function QuestieWhy(db, id)
+	local states = db.DoableStates
+	if db.IsDoableVerbose and type(states) == "table" then
+		-- pcall returns: ok, text, unavailable, state
+		local ok, _, _, state = pcall(db.IsDoableVerbose, id, false, true, true)
+		if ok and state ~= nil then
+			if state == states.NO_PREQUESTSINGLE or state == states.NO_PREQUESTGROUP then return false, "prereq" end
+			if state == states.AVAILABLE or state == states.BLACKLISTED or state == states.EVENT_INACTIVE
+				or state == states.COMPLETED or state == states.QUEST_LOG or state == states.PARENT_ACTIVE
+				or state == states.LEVEL_TOO_LOW then
+				return true   -- (a level that is too low is judged below from requiredLevel)
+			end
+			return false, "other"
+		end
+	end
+	local s3, doable = pcall(db.IsDoable, id)
+	if s3 and doable == false then return false, "other" end
+	return true
+end
+
+-- true when the quest can be accepted (or nothing is known); false, "prereq" | "level" | "other", level
 -- when Questie says it cannot be accepted right now.
 function FR.QuestAvailable(id)
 	if not id then return true end
@@ -199,9 +222,9 @@ function FR.QuestAvailable(id)
 	local ok, why, level = true, nil, nil
 	local s, known = pcall(db.QueryQuestSingle, id, "name")
 	if s and known then
-		local s2, doable = pcall(db.IsDoable, id)
-		if s2 and doable == false then
-			ok, why = false, "prereq"
+		local can, reason = QuestieWhy(db, id)
+		if can == false then
+			ok, why = false, reason
 		else
 			local s3, need = pcall(db.QueryQuestSingle, id, "requiredLevel")
 			if s3 and type(need) == "number" and need > (UnitLevel("player") or 1) then

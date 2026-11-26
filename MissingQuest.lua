@@ -443,6 +443,26 @@ end
 
 -- The quest a step is stuck on: qid, "log" (a turn-in or objective of a quest that is not in the log) or
 -- qid, "prereq" (a quest that Questie says cannot be accepted because a quest before it is missing).
+-- Does the step have something else to do besides accepting (a turn-in, objectives, items)? A chain step
+-- ".turnin P" + ".accept X" is such a step: X only becomes available once P is handed in.
+local function OtherOpenWork(step)
+	for _, e in ipairs(step.elements) do
+		if e.kind ~= "accept" and e.kind ~= "goto" then
+			local done, completable = FR:ElementState(step, e)
+			if completable and not done then return true end
+		end
+	end
+	return false
+end
+
+-- Is a quest before `qid` in the log (finished or not)? Then the player is working through the chain.
+local function PreQuestInLog(qid)
+	for _, p in ipairs(RawPreQuests(qid)) do
+		if FR.IsOnQuest(p) then return true end
+	end
+	return false
+end
+
 local function Detect(step)
 	for _, e in ipairs(step.elements) do
 		if e.qid and not e.cond and not e.skipIfMissing and (e.kind == "turnin" or e.kind == "complete")
@@ -454,12 +474,13 @@ local function Detect(step)
 			end
 		end
 	end
+	if OtherOpenWork(step) then return nil end
 	for _, e in ipairs(step.elements) do
 		if e.kind == "accept" and e.qid and not e.cond and not Ignored(e.qid) then
 			local done, completable = FR:ElementState(step, e)
 			if completable and not done then
 				local ok, why = FR.QuestAvailable(e.qid)
-				if not ok and why == "prereq" then return e.qid, "prereq" end
+				if not ok and why == "prereq" and not PreQuestInLog(e.qid) then return e.qid, "prereq" end
 			end
 		end
 	end

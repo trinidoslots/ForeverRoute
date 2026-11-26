@@ -511,6 +511,18 @@ local COND_TEXT = {
 	onquest = function(e) return (e.reverse and "already on quest " or "not on quest ") .. table.concat(e.qids, ",") end,
 	turnedin = function(e) return "quest " .. table.concat(e.qids, ",") .. (e.reverse and " already turned in" or " not turned in") end,
 	ready = function(e) return "quest " .. table.concat(e.qids, ",") .. (e.reverse and " is complete" or " is not complete") end,
+	maxlevel = function(e) return "you are above level " .. tostring(e.level) end,
+	xp = function(e) return e.reverse and "level not reached yet" or "level already reached" end,
+	istrained = function() return "spell already learned" end,
+	skill = function(e) return e.reverse and "skill level too low" or "skill level already reached" end,
+	itemcount = function() return "item count does not fit" end,
+	money = function() return "money does not fit" end,
+	cooldown = function() return "cooldown does not fit" end,
+	showwhiledead = function() return "you are not dead" end,
+	bindlocation = function() return "hearthstone bound elsewhere" end,
+	aura = function(e) return e.reverse and "aura is missing" or "aura is active" end,
+	zoneskip = function() return "zone does not fit" end,
+	subzoneskip = function() return "area does not fit" end,
 }
 
 local function DoneSource(self, step, e)
@@ -542,13 +554,16 @@ function FR:FinishReason(step)
 	for _, e in ipairs(step.elements) do
 		if e.cond and CondFails(e) then
 			local text = COND_TEXT[e.cond]
-			return "condition: " .. (text and e.qids and text(e) or tostring(e.cond))
+			return "condition: " .. (text and text(e) or tostring(e.cond))
 		end
 	end
 	local u = self.unavail[step]
-	if u and self:Get("skipUnavailable") and GetTime() - u.since >= UNAVAIL_DELAY then
-		return u.why == "level" and ("missing pre-requisites: needs level " .. tostring(u.level))
-			or "missing pre-requisites: the quest cannot be accepted yet"
+	-- Only while the quests are still unavailable now: a step finished by accepting the quest keeps
+	-- its normal reason (the stored record may be left over from before the accept).
+	if u and self:Get("skipUnavailable") and GetTime() - u.since >= UNAVAIL_DELAY and self:UnavailableReason(step) then
+		if u.why == "level" then return "missing pre-requisites: needs level " .. tostring(u.level) end
+		if u.why == "other" then return "the quest cannot be accepted (Questie says it is unavailable)" end
+		return "missing pre-requisites: a quest before it is missing"
 	end
 	local parts = {}
 	for _, e in ipairs(step.elements) do
