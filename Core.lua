@@ -692,6 +692,7 @@ FR.defaults = {
 	autoPassNotice = true,        -- say when the guide passes steps that were already done (History.lua)
 	versionChannel = true,        -- join the hidden channel FRVersion to hear about newer versions (VersionCheck.lua)
 	skipUnavailable = true,       -- pass "accept" steps of quests Questie says cannot be taken (Engine.lua, needs the Questie addon)
+	hearthFallback = true,         -- a hearthstone step that does not fit (bound elsewhere, cooldown) gets a travel step to the same place (Hearth.lua)
 	missingQuestPrompt = true,    -- a step stuck on a quest you do not have shows a card: create a route or skip it (MissingQuest.lua)
 	autoFly = false,              -- a "Fly to ..." step flies there as soon as the flight master's map opens (Events.lua; Shift = off)
 	autoBank = true,              -- ".bankdeposit / .bankwithdraw" steps move their items when the bank is open (Bank.lua; Shift = off)

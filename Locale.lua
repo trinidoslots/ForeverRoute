@@ -434,6 +434,15 @@ local DE = {
 	["Skip quests I cannot accept"] = "Quests überspringen, die ich nicht annehmen kann",
 	["Passes a step whose quest you cannot take (a quest before it is missing, you are too low a level, the quest excludes one you have, or it is not for your race or class). Needs the Questie addon. Going back to the step shows it again."] =
 		"Überspringt einen Schritt, dessen Quest du nicht annehmen kannst (eine vorherige Quest fehlt, deine Stufe ist zu niedrig, die Quest schließt eine andere aus, die du hast, oder sie ist nicht für deine Rasse oder Klasse). Benötigt das Addon Questie. Geht man zum Schritt zurück, wird er wieder angezeigt.",
+	-- Hearthstone (Hearth.lua)
+	["Travel step when the hearthstone does not fit"] = "Reiseschritt, wenn der Ruhestein nicht passt",
+	["A \"Hearth to ...\" step is hidden while your hearthstone is bound somewhere else or cooling down, and a step that sends you there by flight path or on foot is shown instead. /fr bind shows how the guide reads your hearthstone."] =
+		"Ein „Ruhestein nach …“-Schritt wird ausgeblendet, solange dein Ruhestein woanders gebunden ist oder abkühlt; stattdessen erscheint ein Schritt, der dich per Flugroute oder zu Fuß dorthin schickt. /fr bind zeigt, wie der Guide deinen Ruhestein liest.",
+	["Your hearthstone cannot take you to %s now (set elsewhere or cooling down). Travel there by flight path or on foot."] =
+		"Dein Ruhestein bringt dich gerade nicht nach %s (anderswo gesetzt oder in der Abklingzeit). Reise per Flugroute oder zu Fuß dorthin.",
+	["where the hearthstone is bound and how the guide reads it (for bug reports)"] = "wo der Ruhestein gebunden ist und wie der Guide ihn liest (für Fehlerberichte)",
+	["quests in your log that the rest of the guide no longer mentions"] = "Quests im Questlog, die der restliche Guide nicht mehr erwähnt",
+	["Quests in your log that the next %d guide(s) do not mention: %d"] = "Quests im Questlog, die die nächsten %d Guide(s) nicht erwähnen: %d",
 	-- Missing quests (MissingQuest.lua)
 	["Offer a route for missing quests"] = "Route für fehlende Quests anbieten",
 	["When a step needs a quest that is not in your quest log (or cannot be accepted because a quest before it is missing), a card offers to create a route that gets it, or to skip it, and lists the later quests you may miss. Uses the Questie addon when it is installed."] =

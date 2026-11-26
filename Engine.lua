@@ -117,6 +117,7 @@ local function AreaName(id)
 		if ok then return FR.Plain(name) end
 	end
 end
+FR.AreaName = AreaName   -- Hearth.lua
 
 local function LevelReached(e)
 	local level = UnitLevel("player") or 1
@@ -395,9 +396,16 @@ local function CondFails(e)
 		if e.less then return left < e.seconds end
 		return left > e.seconds
 	elseif c == "bindlocation" then
-			local name = AreaName(e.area)
-			if not (name and GetBindLocation) then return false end
-			return (GetBindLocation() == name) ~= e.reverse
+		-- true = bound there, false = bound elsewhere, nil = cannot tell (then the step stays as it is).
+		-- Besides the area's name the place the step names ("Hearth to Orgrimmar") is compared, and the
+		-- place saved when the hearthstone was set (Hearth.lua).
+		local here = FR.BindVerdict(e.area, e.place)
+		if here == nil then return false end
+		return here ~= e.reverse
+	elseif c == "hsfallback" then
+		-- The travel step that stands in for a hearthstone step: it is passed while the hearthstone can
+		-- be used (or when nothing is known), shown when it is bound elsewhere or on cooldown.
+		return not FR.HearthUnusable(e)
 	elseif c == "aura" then
 			return FR.HasAura(e.aura, e.unit) ~= e.reverse
 	elseif c == "zoneskip" then
@@ -519,7 +527,8 @@ local COND_TEXT = {
 	money = function() return "money does not fit" end,
 	cooldown = function() return "cooldown does not fit" end,
 	showwhiledead = function() return "you are not dead" end,
-	bindlocation = function() return "hearthstone bound elsewhere" end,
+	bindlocation = function(e) return e.reverse and "hearthstone bound elsewhere" or "hearthstone already set there" end,
+	hsfallback = function() return "hearthstone can be used" end,
 	aura = function(e) return e.reverse and "aura is missing" or "aura is active" end,
 	zoneskip = function() return "zone does not fit" end,
 	subzoneskip = function() return "area does not fit" end,

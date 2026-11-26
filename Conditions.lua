@@ -51,6 +51,15 @@ local function IsOnQuest(id)
 end
 FR.IsOnQuest = IsOnQuest
 
+-- Every quest in the log as { id, title } (Orphans.lua).
+function FR.LoggedQuests()
+	ScanQuestLog()
+	local list = {}
+	for id, q in pairs(questLog) do list[#list + 1] = { id = id, title = q.title, complete = q.complete } end
+	table.sort(list, function(x, y) return x.id < y.id end)
+	return list
+end
+
 local turnedIn = {}
 FR.turnedIn = turnedIn
 

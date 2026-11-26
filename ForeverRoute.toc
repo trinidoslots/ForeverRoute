@@ -2,7 +2,7 @@
 ## Title: ForeverRoute
 ## Notes: Step-by-step leveling guide for WoW Forever. Guides by RestedXP (CC BY-NC-SA 4.0).
 ## Notes-deDE: Schritt-fuer-Schritt-Levelguide fuer WoW Forever. Guides von RestedXP (CC BY-NC-SA 4.0).
-## Version: 2.12.3
+## Version: 2.12.4
 ## Category: Quests
 ## X-Curse-Project-ID: 1827332
 ## SavedVariables: ForeverRouteDB
@@ -25,6 +25,9 @@ Parser.lua
 Engine.lua
 History.lua
 MissingQuest.lua
+HearthAreas.lua
+Hearth.lua
+Orphans.lua
 FlatMenu.lua
 Waypoint.lua
 UI.lua

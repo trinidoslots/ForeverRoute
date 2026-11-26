@@ -529,6 +529,10 @@ end
 -- go into it, so a guide has the same signatures in every language.
 local SIG_MASKED = { target = true, targetnpc = true, mob = true, unitscan = true, link = true, macro = true, timer = true }
 
+-- Typos in RestedXP's guides that make a step lose its meaning ("#completewity next" is no side step,
+-- "#lable X" leaves a "#completewith X" without a target, "#sofcore" shows a softcore step to everyone).
+local DIRECTIVE_TYPOS = { completewity = "completewith", lable = "label", sofcore = "softcore" }
+
 local function ParseLine(line, step, ctx)
 	local tag
 	line = line:gsub("%s*<<%s*(.+)$", function(t) tag = t return "" end)
@@ -537,6 +541,8 @@ local function ParseLine(line, step, ctx)
 
 	local key, value = line:match("^#(%S+)%s*(.*)$")
 	if key then
+		key = key:gsub("%-%-.*$", "")   -- "#som--xpgate": a comment stuck to the tag
+		key = DIRECTIVE_TYPOS[key] or key
 		-- "#label End --hidden step for #include": the comment is not part of the value.
 		value = Trim((value:gsub("%s+%-%-.*$", "")))
 		if step[key] == nil then step[key] = (value ~= "" and value) or true end
@@ -850,10 +856,116 @@ local function Expand(self, src, out, shown, ctx, depth, from, to, seen)
 	end
 end
 
+-- Hearthstone steps ----------------------------------------------------------------------------
+-- See Hearth.lua. For every step with a "Hearth to <place>" line:
+--   * a step without ".bindlocation" gets one when the place is known (FR.HEARTH_AREAS);
+--   * a travel step is put in front of it, shown only while the hearthstone cannot be used (bound
+--     elsewhere or cooling down) and the player is not where the guide goes on. It points at the first
+--     place the steps after the hearthstone step lead to. When the guide has a way of its own (a flight, a
+--     zone to travel to) right behind the hearthstone step, nothing is added.
+local TRAVEL_WORDS = { "fly", "flight", "travel", "take the", "boat", "zeppelin", "ship", "portal", "teleport",
+	"run to", "walk to", "head to", "swim" }
+
+local function HasHearthLine(step)
+	for _, e in ipairs(step.elements) do
+		if e.kind == "hs" then return e end
+	end
+end
+
+local function OwnWayThere(steps, i)
+	local looked = 0
+	for j = i + 1, #steps do
+		local t = steps[j]
+		if not HasHearthLine(t) then
+			looked = looked + 1
+			for _, e in ipairs(t.elements) do
+				if e.kind == "fly" or e.kind == "zone" or e.kind == "subzone" then return true end
+				if e.kind == "cast" and e.text then
+					local low = e.text:lower()
+					if low:find("teleport", 1, true) or low:find("portal", 1, true) then return true end
+				elseif e.text and not e.cond then
+					local low = e.text:lower()
+					for _, w in ipairs(TRAVEL_WORDS) do
+						if low:find(w, 1, true) then return true end
+					end
+				end
+			end
+			if looked >= 3 then break end
+		end
+	end
+	return false
+end
+
+-- The first place on the map the steps after `i` lead to.
+local function NextPlace(steps, i)
+	for j = i + 1, math.min(#steps, i + 8) do
+		if not HasHearthLine(steps[j]) then
+			for _, e in ipairs(steps[j].elements) do
+				if e.kind == "goto" and e.wp and e.wp.mapID then return e.wp end
+			end
+		end
+	end
+end
+
+function FR.AddHearthFallbacks(flat)
+	local out = {}
+	for i, s in ipairs(flat) do
+		local hs = not s.include and s.elements and HasHearthLine(s)
+		if not hs then
+			out[#out + 1] = s
+		else
+			local bind, other = nil, {}
+			for _, e in ipairs(s.elements) do
+				if e.cond == "bindlocation" then bind = e
+				elseif e.cond and e.cond ~= "cooldown" then other[#other + 1] = e end
+			end
+			local place = FR.HearthPlace and FR.HearthPlace(hs.text)
+			local area = bind and bind.area
+			if not area and place and FR.HEARTH_AREAS then area = FR.HEARTH_AREAS[FR.NormPlace(place) or ""] end
+			if area and not bind then
+				-- an unguarded step: skip it when the hearthstone is bound somewhere else
+				local c = {}
+				for k, v in pairs(s) do c[k] = v end
+				c.elements = {}
+				for k, v in ipairs(s.elements) do c.elements[k] = v end
+				table.insert(c.elements, { cond = "bindlocation", area = area, reverse = true, place = place, textOnly = true,
+					hidden = true, generated = true, idx = #c.elements + 1 })
+				s = c
+			elseif bind and place and not bind.place then
+				bind.place = place   -- shared with the other guides of the same text: it is the same place
+			end
+			local dest = (area or place) and not (bind and not bind.reverse) and NextPlace(flat, i)
+			if dest and not OwnWayThere(flat, i) then
+				local name = (area and FR.AreaName and FR.AreaName(area)) or place or "?"
+				local g = { elements = {}, generated = "hsfallback" }
+				local function add(e) e.idx = #g.elements + 1; g.elements[e.idx] = e end
+				-- the step's own conditions apply to the travel step as well (copies: the originals are shared)
+				for _, e in ipairs(other) do
+					local copy = {}
+					for k, v in pairs(e) do copy[k] = v end
+					add(copy)
+				end
+				add({ cond = "hsfallback", area = area, place = place, textOnly = true, hidden = true, generated = true })
+				add({ cond = "zoneskip", ids = { dest.mapID }, reverse = false, textOnly = true, hidden = true, generated = true })
+				add({ text = FR.FormatText(string.format(FR.L["Your hearthstone cannot take you to %s now (set elsewhere or cooling down). Travel there by flight path or on foot."], name)),
+					textOnly = true })
+				add({ kind = "goto", wp = dest, lowPrio = true, arrive = false, textOnly = true, hidden = true })
+				g.sig = "hsfallback|" .. tostring(s.sig or "")
+				g.occ = s.occ or 1
+				g.order = (s.order or i) - 0.5
+				out[#out + 1] = g
+			end
+			out[#out + 1] = s
+		end
+	end
+	return out
+end
+
 function FR:ParseGuide(g)
 	if g.steps then return g.steps end
 	local flat = {}
 	Expand(self, g, flat, function(s) return StepShown(s, g) end, { n = 0, seen = {} }, 0, nil, nil, { [g] = true })
+	if not g.detour and FR.AddHearthFallbacks then flat = FR.AddHearthFallbacks(flat) end
 
 	local out, labels, tips = {}, {}, {}
 	for _, s in ipairs(flat) do
@@ -892,6 +1004,14 @@ function FR:ParseGuide(g)
 				end
 				req.completewith = s.label
 			end
+		end
+	end
+	-- "#completewith X" whose step X does not exist in this guide (a typo in the guide, or the step is in another
+	-- guide): the side step would never go away by itself. It ends with the next step instead.
+	for _, s in ipairs(out) do
+		local t = s.completewith
+		if type(t) == "string" and t ~= "next" and not labels[t] then
+			s.completewithMissing, s.completewith = t, true
 		end
 	end
 	g.labels = labels

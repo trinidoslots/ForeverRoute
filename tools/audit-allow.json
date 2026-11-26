@@ -1,0 +1,11 @@
+[
+	{ "rule": "A4", "key": "cmd xpto60", "reason": "RestedXP typo for a manual 'skip ahead at level 60' line; shown as a text line you can tick, which is what it is for" },
+	{ "rule": "A4", "key": "cmd engrave", "reason": "Season of Discovery runes: shown as a text line" },
+	{ "rule": "A4", "key": "dir completewithTBTurnins", "reason": "RestedXP leftover for its Ragefire Chasm turn-in helper; the step is a plain note" },
+	{ "rule": "A4", "key": "dir completewity", "reason": "typo, read as #completewith by Parser.lua (DIRECTIVE_TYPOS)" },
+	{ "rule": "A4", "key": "dir lable", "reason": "typo, read as #label by Parser.lua (DIRECTIVE_TYPOS)" },
+	{ "rule": "A4", "key": "dir sofcore", "reason": "typo, read as #softcore by Parser.lua (DIRECTIVE_TYPOS)" },
+	{ "rule": "A4", "key": "dir era/som", "reason": "Era or Season of Mastery content: Forever plays like Era, the steps are shown" },
+	{ "rule": "A4", "key": "dir som--xpgate", "reason": "a comment stuck to the tag (\"#som--xpgate\"); Parser.lua strips it, so the step is hidden like any #som step" },
+	{ "rule": "A4", "key": "hdr era/som", "reason": "Era or Season of Mastery guide: Forever plays like Era, the guide is shown" }
+]
